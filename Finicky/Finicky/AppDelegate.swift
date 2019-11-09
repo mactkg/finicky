@@ -233,7 +233,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         // Launch in background by default if finicky isn't active to avoid something that causes some bug to happen...
 
         print("Opening " + app.bundleId + " at: " + url.absoluteString)
-        startBrowser(app: app, url: url, defaultOpenInBackground: !isActive)
+
+
+        if let error = startBrowser(app: app, url: url, defaultOpenInBackground: !isActive) {
+            logToConsole(error)
+        }
 
     }
 

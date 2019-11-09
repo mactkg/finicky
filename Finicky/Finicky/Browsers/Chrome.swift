@@ -10,7 +10,7 @@ import Foundation
 import AppKit
 import Cocoa
 
-public func StartChromeIncognito(app: BrowserOpts, url: URL, defaultOpenInBackground: Bool) {
+public func StartChromeIncognito(app: BrowserOpts, url: URL, defaultOpenInBackground: Bool) -> String? {
 
     let apps = NSRunningApplication.runningApplications(withBundleIdentifier: app.bundleId)
 
@@ -47,22 +47,26 @@ public func StartChromeIncognito(app: BrowserOpts, url: URL, defaultOpenInBackgr
                 end if
             end tell
         """
-        executeScript(chromeScript)
-        return
+        return executeScript(chromeScript)
+
     }
 
-
+    return nil
 
 }
 
-func executeScript(_ script: String) {
+func executeScript(_ script: String) -> String? {
     var error: NSDictionary?
     if let scriptObject = NSAppleScript(source: script) {
-        if let output: NSAppleEventDescriptor = scriptObject.executeAndReturnError(
-                                                                           &error) {
-            print(output.stringValue)
-        } else if (error != nil) {
-            showNotification(title: "error: \(error)")
+        let output: NSAppleEventDescriptor = scriptObject.executeAndReturnError(
+                                                                           &error)
+        if let outputString = output.stringValue {
+            print(outputString)
+        }
+
+        if (error != nil) {
+            return String(describing: error)
         }
     }
+    return nil
 }

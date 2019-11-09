@@ -13,12 +13,12 @@ enum Browser: String {
     case Opera = "com.operasoftware.Opera"
 }
 
-public func startBrowser(app: BrowserOpts, url: URL, defaultOpenInBackground: Bool) {
+public func startBrowser(app: BrowserOpts, url: URL, defaultOpenInBackground: Bool) -> String? {
     var command = ["open", url.absoluteString, "-b", app.bundleId]
 
     if (app.bundleId == Browser.Chrome.rawValue) {
-        StartChromeIncognito(app: app, url: url, defaultOpenInBackground: defaultOpenInBackground)
-        return
+        return StartChromeIncognito(app: app, url: url, defaultOpenInBackground: defaultOpenInBackground)
+
     }
 
 
@@ -28,6 +28,7 @@ public func startBrowser(app: BrowserOpts, url: URL, defaultOpenInBackground: Bo
 
     print(command.joined(separator: " "))
     shell(command)
+    return nil
 }
 
 

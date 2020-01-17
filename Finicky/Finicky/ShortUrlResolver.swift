@@ -1,6 +1,6 @@
 import Foundation
 
-class ResolveShortUrls: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
+class ResolveShortUrls: NSObject, URLSessionTaskDelegate {
     fileprivate var shortUrlResolver: FNShortUrlResolver?
 
     init(shortUrlResolver: FNShortUrlResolver) {
@@ -9,16 +9,38 @@ class ResolveShortUrls: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
     }
 
     func urlSession(_: URLSession, task _: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
+        print("urlSession \(request.url?.path) also \(response.statusCode) etc \(response.url?.path)")
         var newRequest: URLRequest? = request
 
-        if [301, 302, 309].contains(response.statusCode) {
-            if let newUrl = URL(string: (response.allHeaderFields["Location"] as? String)!) {
-                if !shortUrlResolver!.isShortUrl(newUrl) {
-                    newRequest = nil
-                }
-            }
+        var res = shortUrlResolver!.isShortUrl(response.url!)
+        if  !res {
+            print("isnt short")
+            newRequest = nil
+        } else {
+            print("is long b o y")
         }
-
+//
+//        var res = shortUrlResolver!.isShortUrl(request.url!)
+//        print("is it intersting? \(res) ok boy \(request.url)")
+//
+//        if [301, 302, 309].contains(response.statusCode) {
+//            print("newurl \(response.allHeaderFields["Location"] as? String)")
+//            let newUrl = request.url ?? URL(string: (response.allHeaderFields["Location"] as? String)!)
+//
+//            if (newUrl != nil) {
+//                print("is it a new short url?")
+//                if !shortUrlResolver!.isShortUrl(newUrl!) {
+//                    print("no it's not")
+//                    newRequest = nil
+//                } else {
+//                    print("yes it is...")
+//                }
+//            } else {
+//
+//                print("Nope newURL was nil I guess...? \(newUrl)")
+//            }
+//        }
+//        print("completion with \(newRequest)")
         completionHandler(newRequest)
     }
 }
@@ -40,6 +62,8 @@ let defaultUrlShorteners = [
     "tiny.cc",
     "tinyurl.com",
 ]
+
+
 
 class FNShortUrlResolver {
     private var shortUrlProviders: [String] = []
@@ -80,7 +104,7 @@ class FNShortUrlResolver {
             callback(url)
             return
         }
-
+        print("resolving the url, hey")
         var request = URLRequest(url: url)
         request.setValue("finicky/\(version)", forHTTPHeaderField: "User-Agent")
         let myDelegate = ResolveShortUrls(shortUrlResolver: self)
@@ -88,9 +112,12 @@ class FNShortUrlResolver {
 
         let task = session.dataTask(with: request, completionHandler: { (_, response, _) -> Void in
 
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! the response is \(response!.url)")
             if let httpResponse: HTTPURLResponse = response as? HTTPURLResponse {
-                let newUrl = URL(string: httpResponse.allHeaderFields["Location"] as? String ?? url.absoluteString)
-                callback(newUrl ?? url)
+
+                print("responsed \(httpResponse.url)")
+                let newUrl = httpResponse.url
+                callback(httpResponse.url ?? url)
             } else {
                 callback(url)
             }

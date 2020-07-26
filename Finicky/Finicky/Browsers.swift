@@ -13,8 +13,9 @@ enum Browser: String {
 }
 
 public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] {
-    var command = ["open", url.absoluteString]
+    var command = ["open"]
 
+    // Append options first.
     // appPath takes priority over bundleId as it is always unique.
     if let appPath = browserOpts.appPath {
         command.append(contentsOf: ["-a", appPath])
@@ -24,6 +25,21 @@ public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] 
 
     if browserOpts.openInBackground {
         command.append("-g")
+    }
+    
+    // Pass URL using --args when profileName is defined and supported browser used
+    // because arguments are ignored when URL pass to open commmand as filename.
+    if let profileName = browserOpts.profileName {
+        let usedName = browserOpts.appPath ?? browserOpts.bundleId ?? ""
+        if usedName.lowercased().contains("firefox") {
+            command.append(contentsOf: ["-n", "--args", "-P", profileName, url.absoluteString])
+        } else if usedName.lowercased().contains("chrome") {
+            command.append(contentsOf: ["-n", "--args", "--profile-directory=\(profileName)", url.absoluteString])
+        } else {
+            command.append(url.absoluteString)
+        }
+    } else {
+        command.append(url.absoluteString)
     }
 
     return command

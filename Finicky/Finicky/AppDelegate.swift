@@ -169,20 +169,31 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
             if appDescriptor.browsers.count == 1 {
                 if let browser = appDescriptor.browsers.first {
-                    description += "Opens browser: \(browser.name)\(browser.openInBackground ? " (opens in background)" : "")"
+                    description += "Opens browser: \(self.buildOptionDescription(browser: browser))"
                 }
             } else if appDescriptor.browsers.count == 0 {
                 description += "Won't open any browser"
             } else {
                 description += "Opens first active browser of: "
                 for (index, browser) in appDescriptor.browsers.enumerated() {
-                    description += "[\(index)]: \(browser.name) \(browser.openInBackground ? "(opens in background)" : "")"
+                    description += "[\(index)]: \(self.buildOptionDescription(browser: browser))"
                 }
             }
 
             description += ", url: \(appDescriptor.url)"
             logToConsole(description)
         }
+    }
+    
+    func buildOptionDescription(browser: BrowserOpts) -> String {
+        var profileNameDesc: String? = nil
+        if let profileName = browser.profileName {
+            profileNameDesc = "Profile '\(profileName)' used"
+        }
+        let backgroundDesc = browser.openInBackground ? " opens in background" : nil
+        
+        let optionDescription = [profileNameDesc, backgroundDesc].compactMap { $0 }.joined(separator: ",")
+        return "\(browser.name)\(optionDescription.isEmpty ? "" : "\(optionDescription)")"
     }
 
     @discardableResult
